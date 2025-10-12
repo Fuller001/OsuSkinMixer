@@ -380,8 +380,8 @@ public class SkinModifierMachine : SkinMachine
 
         AddFileToOriginalElementsCache(hitcirclePath);
         AddFileToOriginalElementsCache(hitcircleoverlayPath);
-        hitcircle.Save(hitcirclePath);
-        hitcircleoverlay.Save(hitcircleoverlayPath);
+        File.WriteAllBytes(hitcirclePath, TransparentPngFile);
+        File.WriteAllBytes(hitcircleoverlayPath, TransparentPngFile);
 
         if (fontsSection != null && suffix == null)
         {
