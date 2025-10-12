@@ -39,7 +39,7 @@ public partial class SetupPopup : Popup
     private void DoneButtonPressed()
     {
         DoneButton.SetDeferred(Button.PropertyName.Disabled, true);
-
+        LineEdit.Text = LineEdit.Text.Trim('"').Trim('\'');
         if (!Settings.TrySetOsuFolder(LineEdit.Text, out string error))
         {
             DoneButton.SetDeferred(Button.PropertyName.Disabled, false);
