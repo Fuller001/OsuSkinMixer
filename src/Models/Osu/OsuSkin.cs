@@ -274,6 +274,27 @@ public class OsuSkin
 
         try
         {
+            if (filename.EndsWith('*'))
+            {
+                string basePattern = filename.TrimEnd('*');
+
+                foreach (var file in Directory.EnumerateFiles())
+                {
+                    string nameWithoutExt = Path.GetFileNameWithoutExtension(file.Name);
+                    string ext = file.Extension.ToLowerInvariant();
+
+                    if (nameWithoutExt.StartsWith(basePattern, StringComparison.OrdinalIgnoreCase) && ext is ".wav" or ".ogg")
+                    {
+                        if (ext == ".wav")
+                            return AudioStreamWav.LoadFromFile(file.FullName);
+                        else if (ext == ".ogg")
+                            return AudioStreamOggVorbis.LoadFromFile(file.FullName);
+                    }
+                }
+
+                return null;
+            }
+
             if (File.Exists(pathPrefix + ".wav"))
             {
                 return AudioStreamWav.LoadFromFile(pathPrefix + ".wav");
