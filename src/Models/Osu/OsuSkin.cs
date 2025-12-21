@@ -276,7 +276,7 @@ public class OsuSkin
         {
             if (File.Exists(pathPrefix + ".wav"))
             {
-                return Tools.GetAudioStreamWav(File.ReadAllBytes(pathPrefix + ".wav"));
+                return AudioStreamWav.LoadFromFile(pathPrefix + ".wav");
             }
             else if (File.Exists(pathPrefix + ".ogg"))
             {
