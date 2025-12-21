@@ -22,6 +22,7 @@ public partial class ComboColoursContainer : HBoxContainer
 	private Label EnableOverrideLabel;
 	private Button EnableOverrideButton;
 	private OkPopup ChangeColorPopup;
+	private ComboColourIcon PreviewIcon;
 	private ColorPicker ColorPicker;
 	private Button RemoveColourButton;
 	private HBoxContainer ContentContainer;
@@ -40,6 +41,7 @@ public partial class ComboColoursContainer : HBoxContainer
 		EnableOverrideLabel = GetNode<Label>("%EnableOverrideLabel");
 		EnableOverrideButton = GetNode<Button>("%EnableOverrideButton");
 		ChangeColorPopup = GetNode<OkPopup>("%ChangeColorPopup");
+		PreviewIcon = GetNode<ComboColourIcon>("%PreviewIcon");
 		ColorPicker = GetNode<ColorPicker>("%ColorPicker");
 		RemoveColourButton = GetNode<Button>("%RemoveColourButton");
 		ContentContainer = GetNode<HBoxContainer>("%ContentContainer");
@@ -148,12 +150,14 @@ public partial class ComboColoursContainer : HBoxContainer
 	{
 		SelectedComboColourIcon = comboColourIcon;
 		ColorPicker.Color = comboColourIcon.Color;
+		PreviewIcon.SetValues(HitcircleTexture, HitcircleoverlayTexture, comboColourIcon.DefaultTexture, comboColourIcon.Color);
 		ChangeColorPopup.In();
 	}
 
 	private void OnColorPickerColorChanged(Color color)
 	{
 		SelectedComboColourIcon.Color = color;
+		PreviewIcon.Color = color;
 	}
 
 	private void OnRemoveColourButtonPressed()

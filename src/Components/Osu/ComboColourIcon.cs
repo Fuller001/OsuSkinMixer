@@ -12,6 +12,7 @@ public partial class ComboColourIcon : CenterContainer
 
 	public Texture2D DefaultTexture
 	{
+		get => DefaultTextureRect.Texture;
 		set => DefaultTextureRect.Texture = value;
 	}
 
@@ -30,9 +31,9 @@ public partial class ComboColourIcon : CenterContainer
 		Button.Pressed += OnButtonPressed;
     }
 
-	public void SetValues(Texture2D hitcircle, Texture2D hitcircleoverlay, Texture2D defaultTexture, Color color)
+	public void SetValues(Texture2D hitcircle, Texture2D hitcircleoverlay, Texture2D defaultTexture, Color color = default)
 	{
-		Hitcircle.Modulate = color;
+		Hitcircle.Modulate = color == default ? new Color(0.75f, 0.75f, 0.75f) : color;
 		Hitcircle.Texture = hitcircle;
 		Hitcircleoverlay.Texture = hitcircleoverlay;
 		DefaultTextureRect.Texture = defaultTexture;
