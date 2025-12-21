@@ -231,7 +231,10 @@ public partial class SkinOptionsSelector : PanelContainer
             {
                 AudioStream stream = skin.GetAudioStream(fileName);
                 if (stream is not null)
+                {
+                    stream.ResourceName = fileName;
                     PreviewAudioStreamQueue.Enqueue(stream);
+                }
             }
 
             PlayNextPreviewAudio();
