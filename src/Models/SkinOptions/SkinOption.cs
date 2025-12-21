@@ -610,6 +610,7 @@ public abstract class SkinOption
                 new ParentSkinOption
                 {
                     Name = "Spinner",
+                    PreviewFileNames = new string[] { "spinnerbonus", "spinnerspin" },
                     Children = new SkinOption[]
                     {
                         new SkinFileOption("spinnerbonus", true, "Bonus"),
@@ -619,6 +620,7 @@ public abstract class SkinOption
                 new ParentSkinOption
                 {
                     Name = "Nightcore beats",
+                    PreviewFileNames = new string[] { "nightcore-clap", "nightcore-kick", "nightcore-hat", "nightcore-finish" },
                     Children = new SkinOption[]
                     {
                         new SkinFileOption("nightcore-clap", true, "Clap"),
@@ -630,11 +632,13 @@ public abstract class SkinOption
                 new ParentSkinOption
                 {
                     Name = "osu!taiko specific",
+                    PreviewFileNames = new string[] { "taiko-normal-hitnormal", "taiko-soft-hitnormal", "taiko-drum-hitnormal" },
                     Children = new SkinOption[]
                     {
                         new ParentSkinOption
                         {
                             Name = "Normal",
+                            PreviewFileNames = new string[] { "taiko-normal-hitnormal", "taiko-normal-hitclap", "taiko-normal-hitwhistle", "taiko-normal-hitfinish" },
                             Children = new SkinOption[]
                             {
                                 new SkinFileOption("taiko-normal-hitnormal", true, "Normal"),
@@ -646,6 +650,7 @@ public abstract class SkinOption
                         new ParentSkinOption
                         {
                             Name = "Soft",
+                            PreviewFileNames = new string[] { "taiko-soft-hitnormal", "taiko-soft-hitclap", "taiko-soft-hitwhistle", "taiko-soft-hitfinish" },
                             Children = new SkinOption[]
                             {
                                 new SkinFileOption("taiko-soft-hitnormal", true, "Normal"),
@@ -657,6 +662,7 @@ public abstract class SkinOption
                         new ParentSkinOption
                         {
                             Name = "Drum",
+                            PreviewFileNames = new string[] { "taiko-drum-hitnormal", "taiko-drum-hitclap", "taiko-drum-hitwhistle", "taiko-drum-hitfinish" },
                             Children = new SkinOption[]
                             {
                                 new SkinFileOption("taiko-drum-hitnormal", true, "Normal"),

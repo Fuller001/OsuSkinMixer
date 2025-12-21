@@ -37,6 +37,17 @@ public partial class SkinComponent : HBoxContainer
         }
     }
 
+    public bool PreviewButtonVisible
+    {
+        get => visiblePreviewButton;
+        set
+        {
+            visiblePreviewButton = value;
+            if (PreviewButton is not null)
+                PreviewButton.Visible = value;
+        }
+    }
+
     public int CreditPercentage
     {
         get => _creditPercentage;
@@ -53,6 +64,8 @@ public partial class SkinComponent : HBoxContainer
     private int _creditPercentage;
 
     private bool visibleCheckBox;
+
+    private bool visiblePreviewButton;
 
     private Button Button;
     private Label NameLabel;
@@ -92,6 +105,7 @@ public partial class SkinComponent : HBoxContainer
         NameLabel.SetDeferred(Label.PropertyName.Text, Skin.Name);
         Button.SetDeferred(Button.PropertyName.TooltipText, $"{Skin.Name}\nRight click for options...");
         CheckBox.SetDeferred(CheckBox.PropertyName.Visible, CheckBoxVisible);
+        PreviewButton?.SetDeferred(Button.PropertyName.Visible, PreviewButtonVisible);
         SetCreditPercentageLabelText();
 
         // Compact components don't have these nodes.
@@ -105,12 +119,6 @@ public partial class SkinComponent : HBoxContainer
 
         // Only compact components have this node, otherwise it is found in HitcircleIcon.
         HiddenIcon?.SetDeferred(TextureRect.PropertyName.Visible, Skin.Hidden);
-    }
-
-    public void SetPreviewButtonVisibility(bool visible)
-    {
-        if (PreviewButton != null)
-            PreviewButton.Visible = visible;
     }
 
     private void OnButtonPressed()

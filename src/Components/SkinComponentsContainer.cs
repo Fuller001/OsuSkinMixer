@@ -158,7 +158,7 @@ public partial class SkinComponentsContainer : PanelContainer
     public void SetPreviewButtonVisibility(bool visible)
     {
         foreach (var component in SkinComponents)
-            component.SetPreviewButtonVisibility(visible);
+            component.PreviewButtonVisible = visible;
     }
 
     private void AddSkinComponent(OsuSkin skin)

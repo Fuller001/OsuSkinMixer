@@ -15,7 +15,7 @@ public partial class SkinSelectorPopup : Popup
 
     private bool _isCompact;
 
-    private bool _showPreviewButtons = true;
+    private bool? _showPreviewButtons = null;
     
     private Button BackButton;
     private LineEdit SearchLineEdit;
@@ -64,7 +64,7 @@ public partial class SkinSelectorPopup : Popup
         if (ShowPreviewButtons != _showPreviewButtons)
         {
             _showPreviewButtons = ShowPreviewButtons;
-            _skinComponentsContainer.SetPreviewButtonVisibility(_showPreviewButtons);
+            _skinComponentsContainer.SetPreviewButtonVisibility(_showPreviewButtons ?? false);
         }
 
         SearchLineEdit.GrabFocus();
