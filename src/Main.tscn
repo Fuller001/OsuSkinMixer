@@ -589,10 +589,10 @@ layer = 15
 
 [node name="Toast" parent="ToastLayer" instance=ExtResource("10_hysk3")]
 unique_name_in_owner = true
-offset_left = -341.0
-offset_top = 53.0
-offset_right = -1.0
-offset_bottom = 146.0
+offset_left = -339.0
+offset_top = 54.0
+offset_right = 1.0
+offset_bottom = 230.0
 
 [node name="Scenes" type="Control" parent="."]
 modulate = Color(1, 1, 1, 0)
