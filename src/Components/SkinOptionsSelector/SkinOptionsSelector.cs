@@ -241,6 +241,12 @@ public partial class SkinOptionsSelector : PanelContainer
                 }
             }
 
+            if (PreviewAudioStreamQueue.Count == 0)
+            {
+                Settings.PushToast($"Sounds don't exist in this skin.");
+                return;
+            }
+
             Settings.PushToast(toastContent.ToString().TrimEnd(',', ' '));
 
             PlayNextPreviewAudio();
@@ -254,7 +260,7 @@ public partial class SkinOptionsSelector : PanelContainer
 
             if (stream is null)
             {
-                Settings.PushToast($"Sound file not found.");
+                Settings.PushToast($"Sound doesn't exist in this skin.");
                 return;
             }
 
