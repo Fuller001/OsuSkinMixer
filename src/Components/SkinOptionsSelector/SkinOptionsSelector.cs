@@ -243,7 +243,9 @@ public partial class SkinOptionsSelector : PanelContainer
 
             if (PreviewAudioStreamQueue.Count == 0)
             {
-                Settings.PushToast($"Sounds don't exist in this skin.");
+                Settings.PushToast($"This skin doesn't have these sounds.");
+                previewFinishedAction?.Invoke();
+                previewFinishedAction = null;
                 return;
             }
 
@@ -260,7 +262,9 @@ public partial class SkinOptionsSelector : PanelContainer
 
             if (stream is null)
             {
-                Settings.PushToast($"Sound doesn't exist in this skin.");
+                Settings.PushToast($"This skin doesn't have this sound.");
+                previewFinishedAction?.Invoke();
+                previewFinishedAction = null;
                 return;
             }
 

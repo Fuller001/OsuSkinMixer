@@ -170,7 +170,7 @@ public partial class SkinComponent : HBoxContainer
     private void OnPreviewFinished()
     {
         PreviewButton?.SetDeferred(Button.PropertyName.ButtonPressed, false);
-        PreviewAnimationPlayer?.Play("out");
+        PreviewAnimationPlayer?.CallDeferred(AnimationPlayer.MethodName.Play, "out");
     }
 
     private void SetCreditPercentageLabelText()
