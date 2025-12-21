@@ -152,7 +152,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0.1, 0.3, 0.5),
 "transitions": PackedFloat32Array(0.5, -1.51572, 1),
 "update": 0,
-"values": [Vector2(-9, -50), Vector2(-9, 5), Vector2(-9, 0)]
+"values": [Vector2(5, -50), Vector2(5, 15), Vector2(5, 10)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -283,16 +283,16 @@ corner_radius_bottom_left = 4
 
 [node name="Toast" type="Control"]
 visible = false
+clip_contents = true
 layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -325.0
-offset_top = 13.0
+offset_left = -352.0
+offset_top = 4.0
 offset_right = -12.0
-offset_bottom = 58.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_bottom = 97.0
+grow_horizontal = 0
 mouse_filter = 1
 mouse_behavior_recursive = 1
 script = ExtResource("1_u1844")
@@ -304,11 +304,14 @@ self_modulate = Color(1, 1, 1, 0.94509804)
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 1
 anchors_preset = -1
-anchor_left = -0.042000003
-anchor_right = -0.042000003
-offset_left = 13.146001
-offset_right = 337.146
-offset_bottom = 508.0
+anchor_left = 0.72400004
+anchor_top = 0.5
+anchor_right = 0.72400004
+anchor_bottom = 0.53300005
+offset_left = -246.16002
+offset_top = -46.5
+offset_right = 77.83998
+offset_bottom = 458.431
 mouse_filter = 2
 mouse_behavior_recursive = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_rifil")

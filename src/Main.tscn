@@ -584,6 +584,16 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_7lugs")
 
 [node name="Background" parent="." instance=ExtResource("3_42h7d")]
 
+[node name="ToastLayer" type="CanvasLayer" parent="."]
+layer = 15
+
+[node name="Toast" parent="ToastLayer" instance=ExtResource("10_hysk3")]
+unique_name_in_owner = true
+offset_left = -341.0
+offset_top = 53.0
+offset_right = -1.0
+offset_bottom = 146.0
+
 [node name="Scenes" type="Control" parent="."]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -602,17 +612,6 @@ anchor_bottom = 1.0
 offset_top = 2.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_ca2ql")
 follow_focus = true
-
-[node name="Toast" parent="." instance=ExtResource("10_hysk3")]
-unique_name_in_owner = true
-z_as_relative = false
-layout_mode = 1
-offset_left = -326.0
-offset_top = 64.0
-offset_right = -13.0
-offset_bottom = 109.0
-grow_horizontal = 0
-grow_vertical = 1
 
 [node name="TopBar" type="Panel" parent="."]
 layout_mode = 1
