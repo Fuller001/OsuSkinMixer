@@ -1,6 +1,7 @@
 namespace OsuSkinMixer.Components;
 
 using System.Runtime.InteropServices.Marshalling;
+using System.Text;
 using OsuSkinMixer.Models;
 using OsuSkinMixer.Statics;
 
@@ -227,6 +228,7 @@ public partial class SkinOptionsSelector : PanelContainer
 
             PreviewAudioStreamQueue.Clear();
 
+            StringBuilder toastContent = new("Playing: ");
             foreach (var fileName in parentSkinOption.PreviewFileNames)
             {
                 AudioStream stream = skin.GetAudioStream(fileName);
@@ -234,8 +236,11 @@ public partial class SkinOptionsSelector : PanelContainer
                 {
                     stream.ResourceName = fileName;
                     PreviewAudioStreamQueue.Enqueue(stream);
+                    toastContent.Append($"{fileName}, ");
                 }
             }
+
+            Settings.PushToast(toastContent.ToString().TrimEnd(',', ' '));
 
             PlayNextPreviewAudio();
         }
@@ -253,7 +258,5 @@ public partial class SkinOptionsSelector : PanelContainer
         AudioStream stream = PreviewAudioStreamQueue.Dequeue();
         AudioStreamPlayer.Stream = stream;
         AudioStreamPlayer.Play();
-
-        Settings.PushToast($"Playing: {stream.ResourceName}");
     }
 }
