@@ -254,7 +254,7 @@ public partial class SkinOptionsSelector : PanelContainer
 
             if (stream is null)
             {
-                Settings.PushToast($"Couldn't play that sound.");
+                Settings.PushToast($"Sound file not found.");
                 return;
             }
 

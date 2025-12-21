@@ -610,7 +610,7 @@ public abstract class SkinOption
                 new ParentSkinOption
                 {
                     Name = "Spinner",
-                    PreviewFileNames = new string[] { "spinnerbonus", "spinnerspin" },
+                    PreviewFileNames = new string[] { "spinnerspin", "spinnerbonus" },
                     Children = new SkinOption[]
                     {
                         new SkinFileOption("spinnerbonus", true, "Bonus"),
@@ -735,6 +735,7 @@ public abstract class SkinOption
                         new ParentSkinOption
                         {
                             Name = "Countdown",
+                            PreviewFileNames = new string[] { "readys", "count3s", "count2s", "count1s", "gos" },
                             Children = new SkinOption[]
                             {
                                 new SkinFileOption("readys", true, "Ready?"),
@@ -760,6 +761,7 @@ public abstract class SkinOption
                         new ParentSkinOption
                         {
                             Name = "Section pass/fail",
+                            PreviewFileNames = new string[] { "sectionpass", "sectionfail" },
                             Children = new SkinOption[]
                             {
                                 new SkinFileOption("sectionfail", true, "Section fail"),
