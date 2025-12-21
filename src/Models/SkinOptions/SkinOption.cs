@@ -559,7 +559,7 @@ public abstract class SkinOption
         new ParentSkinOption
         {
             Name = "Hitsounds",
-            PreviewFileNames = new string[] { "normal-hitclap", "soft-hitclap", "drum-hitclap", "combobreak" },
+            PreviewFileNames = new string[] { "normal-hitnormal", "soft-hitnormal", "drum-hitnormal", "combobreak" },
             Children = new SkinOption[]
             {
                 new ParentSkinOption
