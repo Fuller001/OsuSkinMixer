@@ -75,6 +75,7 @@ public partial class SkinComponent : HBoxContainer
     private TextureRect HiddenIcon;
     private Label CreditPercentageLabel;
     private Button PreviewButton;
+    private AnimationPlayer PreviewAnimationPlayer;
 
     public override void _Ready()
     {
@@ -86,12 +87,13 @@ public partial class SkinComponent : HBoxContainer
         HiddenIcon = GetNodeOrNull<TextureRect>("%HiddenIcon");
         CreditPercentageLabel = GetNodeOrNull<Label>("%CreditPercentage");
         PreviewButton = GetNodeOrNull<Button>("%PreviewButton");
+        PreviewAnimationPlayer = GetNodeOrNull<AnimationPlayer>("%PreviewAnimationPlayer");
 
         Button.Pressed += OnButtonPressed;
         Button.GuiInput += OnGuiInput;
 
         if (PreviewButton != null)
-            PreviewButton.Pressed += () => PreviewRequested?.Invoke(PreviewButton.ButtonPressed, OnPreviewFinished);
+            PreviewButton.Pressed += OnPreviewButtonPressed;
 
         if (CheckBox != null)
             CheckBox.Toggled += OnCheckBoxToggled;
@@ -154,6 +156,12 @@ public partial class SkinComponent : HBoxContainer
         }
     }
 
+    private void OnPreviewButtonPressed()
+    {
+        PreviewRequested?.Invoke(PreviewButton.ButtonPressed, OnPreviewFinished);
+        PreviewAnimationPlayer?.Play(PreviewButton.ButtonPressed ? "in" : "out");
+    }
+
     private void OnCheckBoxToggled(bool value)
     {
         Checked?.Invoke(value);
@@ -162,6 +170,7 @@ public partial class SkinComponent : HBoxContainer
     private void OnPreviewFinished()
     {
         PreviewButton?.SetDeferred(Button.PropertyName.ButtonPressed, false);
+        PreviewAnimationPlayer?.Play("out");
     }
 
     private void SetCreditPercentageLabelText()
