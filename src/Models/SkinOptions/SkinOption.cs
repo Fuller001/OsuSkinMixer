@@ -623,6 +623,46 @@ public abstract class SkinOption
                         new SkinFileOption("nightcore-kick", true, "Kick"),
                     },
                 },
+                new ParentSkinOption
+                {
+                    Name = "osu!taiko specific",
+                    Children = new SkinOption[]
+                    {
+                        new ParentSkinOption
+                        {
+                            Name = "Normal",
+                            Children = new SkinOption[]
+                            {
+                                new SkinFileOption("taiko-normal-hitnormal", true, "Normal"),
+                                new SkinFileOption("taiko-normal-hitclap", true, "Clap"),
+                                new SkinFileOption("taiko-normal-hitfinish", true, "Finish"),
+                                new SkinFileOption("taiko-normal-hitwhistle", true, "Whistle"),
+                            },
+                        },
+                        new ParentSkinOption
+                        {
+                            Name = "Soft",
+                            Children = new SkinOption[]
+                            {
+                                new SkinFileOption("taiko-soft-hitnormal", true, "Normal"),
+                                new SkinFileOption("taiko-soft-hitclap", true, "Clap"),
+                                new SkinFileOption("taiko-soft-hitfinish", true, "Finish"),
+                                new SkinFileOption("taiko-soft-hitwhistle", true, "Whistle"),
+                            },
+                        },
+                        new ParentSkinOption
+                        {
+                            Name = "Drum",
+                            Children = new SkinOption[]
+                            {
+                                new SkinFileOption("taiko-drum-hitnormal", true, "Normal"),
+                                new SkinFileOption("taiko-drum-hitclap", true, "Clap"),
+                                new SkinFileOption("taiko-drum-hitfinish", true, "Finish"),
+                                new SkinFileOption("taiko-drum-hitwhistle", true, "Whistle"),
+                            },
+                        },
+                    },
+                },
                 new SkinFileOption("combobreak", true, "Combo break"),
                 new SkinFileOption("comboburst", true, "Combo burst"),
 
