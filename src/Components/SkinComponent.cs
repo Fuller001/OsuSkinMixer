@@ -14,6 +14,8 @@ public partial class SkinComponent : HBoxContainer
 
     public Action<bool> Checked { get; set; }
 
+    public Action PreviewRequested { get; set; }
+
     public bool IsChecked
     {
         get => CheckBox?.ButtonPressed ?? false;
@@ -59,6 +61,7 @@ public partial class SkinComponent : HBoxContainer
     private CheckBox CheckBox;
     private TextureRect HiddenIcon;
     private Label CreditPercentageLabel;
+    private Button PreviewButton;
 
     public override void _Ready()
     {
@@ -69,9 +72,13 @@ public partial class SkinComponent : HBoxContainer
         CheckBox = GetNodeOrNull<CheckBox>("%CheckBox");
         HiddenIcon = GetNodeOrNull<TextureRect>("%HiddenIcon");
         CreditPercentageLabel = GetNodeOrNull<Label>("%CreditPercentage");
+        PreviewButton = GetNodeOrNull<Button>("%PreviewButton");
 
         Button.Pressed += OnButtonPressed;
         Button.GuiInput += OnGuiInput;
+
+        if (PreviewButton != null)
+            PreviewButton.Pressed += () => PreviewRequested?.Invoke();
 
         if (CheckBox != null)
             CheckBox.Toggled += OnCheckBoxToggled;
@@ -98,6 +105,12 @@ public partial class SkinComponent : HBoxContainer
 
         // Only compact components have this node, otherwise it is found in HitcircleIcon.
         HiddenIcon?.SetDeferred(TextureRect.PropertyName.Visible, Skin.Hidden);
+    }
+
+    public void SetPreviewButtonVisibility(bool visible)
+    {
+        if (PreviewButton != null)
+            PreviewButton.Visible = visible;
     }
 
     private void OnButtonPressed()

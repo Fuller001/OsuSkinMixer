@@ -559,11 +559,13 @@ public abstract class SkinOption
         new ParentSkinOption
         {
             Name = "Hitsounds",
+            PreviewFileNames = new string[] { "normal-hitclap", "soft-hitclap", "drum-hitclap", "combobreak" },
             Children = new SkinOption[]
             {
                 new ParentSkinOption
                 {
                     Name = "Normal",
+                    PreviewFileNames = new string[] { "normal-hitnormal", "normal-hitclap", "normal-hitwhistle", "normal-hitfinish" },
                     Children = new SkinOption[]
                     {
                         new SkinFileOption("normal-hitclap", true, "Clap"),
@@ -578,6 +580,7 @@ public abstract class SkinOption
                 new ParentSkinOption
                 {
                     Name = "Soft",
+                    PreviewFileNames = new string[] { "soft-hitnormal", "soft-hitclap", "soft-hitwhistle", "soft-hitfinish" },
                     Children = new SkinOption[]
                     {
                         new SkinFileOption("soft-hitclap", true, "Clap"),
@@ -592,6 +595,7 @@ public abstract class SkinOption
                 new ParentSkinOption
                 {
                     Name = "Drum",
+                    PreviewFileNames = new string[] { "drum-hitnormal", "drum-hitclap", "drum-hitwhistle", "drum-hitfinish" },
                     Children = new SkinOption[]
                     {
                         new SkinFileOption("drum-hitclap", true, "Clap"),

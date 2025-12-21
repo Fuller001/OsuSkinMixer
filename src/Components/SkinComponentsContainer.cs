@@ -9,6 +9,8 @@ public partial class SkinComponentsContainer : PanelContainer
 
     public event Action<OsuSkin, bool> SkinChecked;
 
+    public event Action<OsuSkin> SkinPreviewRequested;
+
     public Action<IEnumerable<OsuSkin>> SkinInfoRequested
     {
         get => ManageSkinPopup.SkinInfoRequested;
@@ -153,6 +155,12 @@ public partial class SkinComponentsContainer : PanelContainer
         _disabledSkinComponents.Remove(skinComponent);
     }
 
+    public void SetPreviewButtonVisibility(bool visible)
+    {
+        foreach (var component in SkinComponents)
+            component.SetPreviewButtonVisibility(visible);
+    }
+
     private void AddSkinComponent(OsuSkin skin)
     {
         var skinComponent = CreateSkinComponentFrom(skin);
@@ -182,6 +190,7 @@ public partial class SkinComponentsContainer : PanelContainer
         instance.CheckBoxVisible = CheckableComponents;
         instance.LeftClicked += () => SkinSelected(skin);
         instance.Checked += p => SkinChecked(skin, p);
+        instance.PreviewRequested += () => SkinPreviewRequested(skin);
         instance.RightClicked += () =>
         {
             ManageSkinPopup.SetSkin(skin);

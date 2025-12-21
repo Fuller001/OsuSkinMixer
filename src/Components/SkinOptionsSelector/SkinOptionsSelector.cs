@@ -1,5 +1,6 @@
 namespace OsuSkinMixer.Components;
 
+using System.Runtime.InteropServices.Marshalling;
 using OsuSkinMixer.Models;
 using OsuSkinMixer.Statics;
 
@@ -12,6 +13,7 @@ public partial class SkinOptionsSelector : PanelContainer
     private ExpandablePanelContainer ExpandablePanelContainer;
     private VBoxContainer OptionsContainer;
     private AnimationPlayer AnimationPlayer;
+    private AudioStreamPlayer AudioStreamPlayer;
     private Panel ExpandHint;
     private SkinSelectorPopup SkinSelectorPopup;
 
@@ -21,6 +23,8 @@ public partial class SkinOptionsSelector : PanelContainer
 
     private readonly Random Random = new();
 
+    private readonly Queue<AudioStream> PreviewAudioStreamQueue = new();
+
     public override void _Ready()
     {
         SkinOptionComponentScene = GD.Load<PackedScene>("res://src/Components/SkinOptionsSelector/SkinOptionComponent.tscn");
@@ -28,6 +32,7 @@ public partial class SkinOptionsSelector : PanelContainer
         ExpandablePanelContainer = GetNode<ExpandablePanelContainer>("%ExpandablePanelContainer");
         OptionsContainer = GetNode<VBoxContainer>("%OptionsContainer");
         AnimationPlayer = GetNode<AnimationPlayer>("%AnimationPlayer");
+        AudioStreamPlayer = GetNode<AudioStreamPlayer>("%AudioStreamPlayer");
         ExpandHint = GetNode<Panel>("%ExpandHint");
         SkinSelectorPopup = GetNode<SkinSelectorPopup>("%SkinSelectorPopup");
 
@@ -37,7 +42,14 @@ public partial class SkinOptionsSelector : PanelContainer
             OptionComponentSelected(new SkinOptionValue(s));
         };
 
+        SkinSelectorPopup.SkinComponentsContainer.SkinPreviewRequested += OnPreviewRequested;
+
         OsuData.SkinRemoved += OnSkinRemoved;
+
+        AudioStreamPlayer.Finished += () =>
+        {
+            PlayNextPreviewAudio();
+        };
 
         if (!Settings.Content.ArrowButtonPressed)
             AnimationPlayer.Play("hint");
@@ -131,7 +143,9 @@ public partial class SkinOptionsSelector : PanelContainer
             };
             instance.OnButtonPressed += () =>
             {
+                bool showPreviewButtons = skinOption is ParentSkinOption parentSkinOption && parentSkinOption.PreviewFileNames is not null;
                 SkinOptionComponentInSelection = instance;
+                SkinSelectorPopup.ShowPreviewButtons = showPreviewButtons;
                 SkinSelectorPopup.In();
             };
 
@@ -251,5 +265,39 @@ public partial class SkinOptionsSelector : PanelContainer
             SkinOptionComponentInSelection = component;
             OptionComponentSelected(component.DefaultValue);
         }
+    }
+
+    private void OnPreviewRequested(OsuSkin skin)
+    {
+        SkinOption skinOption = SkinOptionComponentInSelection.SkinOption;
+
+        if (skinOption is ParentSkinOption parentSkinOption)
+        {
+            if (parentSkinOption.PreviewFileNames is null)
+                return;
+
+            PreviewAudioStreamQueue.Clear();
+
+            foreach (var fileName in parentSkinOption.PreviewFileNames)
+            {
+                AudioStream stream = skin.GetAudioStream(fileName);
+                if (stream is not null)
+                    PreviewAudioStreamQueue.Enqueue(stream);
+            }
+
+            PlayNextPreviewAudio();
+        }
+    }
+
+    private void PlayNextPreviewAudio()
+    {
+        if (PreviewAudioStreamQueue.Count == 0)
+            return;
+
+        AudioStream stream = PreviewAudioStreamQueue.Dequeue();
+        AudioStreamPlayer.Stream = stream;
+        AudioStreamPlayer.Play();
+
+        Settings.PushToast($"Playing: {stream.ResourceName}");
     }
 }
