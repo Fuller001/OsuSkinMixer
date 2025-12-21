@@ -252,6 +252,12 @@ public partial class SkinOptionsSelector : PanelContainer
             AudioStream stream = skin.GetAudioStream(skinFileOption.IncludeFileName);
             PreviewAudioStreamQueue.Enqueue(stream);
 
+            if (stream is null)
+            {
+                Settings.PushToast($"Couldn't play that sound.");
+                return;
+            }
+
             Settings.PushToast($"Playing: {skinFileOption.IncludeFileName}");
 
             PlayNextPreviewAudio();
