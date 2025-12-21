@@ -58,67 +58,6 @@ public partial class SkinOptionsSelector : PanelContainer
         AudioStreamPlayer = null;
     }
 
-    // public void CreateOptionComponents(SkinOptionValue defaultValue)
-    // {
-    //     foreach (Node child in GetChildren())
-    //         (child as SkinOptionComponent)?.QueueFree();
-
-    //     SkinOptionComponents = new List<SkinOptionComponent>();
-
-    //     foreach (var option in SkinOptions)
-    //         addOptionComponent(option, OptionsContainer, 0);
-
-    //     void addOptionComponent(SkinOption option, VBoxContainer vbox, int layer)
-    //     {
-    //         SkinOptionComponent component = SkinOptionComponentScene.Instantiate<SkinOptionComponent>();
-    //         vbox.AddChild(component);
-
-    //         component.ResetButton.Pressed += () =>
-    //         {
-    //             Settings.Log($"Skin option '{option.Name}' reset to default: {component.DefaultValue}");
-    //             SkinOptionComponentInSelection = component;
-    //             OptionComponentSelected(defaultValue);
-    //         };
-    //         component.Button.Pressed += () =>
-    //         {
-    //             SkinOptionComponentInSelection = component;
-    //             SkinSelectorPopup.In();
-    //         };
-
-    //         component.SetSkinOption(option, defaultValue, layer);
-
-    //         if (option is ParentSkinOption parentOption)
-    //         {
-    //             var newVbox = new VBoxContainer()
-    //             {
-    //                 CustomMinimumSize = new Vector2(10, 0),
-    //                 Visible = false,
-    //             };
-    //             newVbox.AddThemeConstantOverride("separation", 8);
-
-    //             vbox.AddChild(newVbox);
-    //             vbox.MoveChild(newVbox, component.GetIndex() + 1);
-
-    //             component.ArrowButton.Toggled += p =>
-    //             {
-    //                 newVbox.Visible = p;
-
-    //                 if (!Settings.Content.ArrowButtonPressed)
-    //                 {
-    //                     ExpandHint.Visible = false;
-    //                     Settings.Content.ArrowButtonPressed = true;
-    //                     Settings.Save();
-    //                 }
-    //             };
-
-    //             foreach (var child in parentOption.Children)
-    //                 addOptionComponent(child, newVbox, layer + 1);
-    //         }
-
-    //         SkinOptionComponents.Add(component);
-    //     }
-    // }
-
     public void CreateOptionComponents(SkinOptionValueType defaultValueType)
     {
         SkinOptionComponents = new List<SkinOptionComponent>();
