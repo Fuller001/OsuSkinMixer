@@ -81,7 +81,8 @@ public partial class SkinOptionsSelector : PanelContainer
             };
             instance.OnButtonPressed += () =>
             {
-                bool showPreviewButtons = skinOption is ParentSkinOption parentSkinOption && parentSkinOption.PreviewFileNames is not null;
+                bool showPreviewButtons = (skinOption is ParentSkinOption parentSkinOption && parentSkinOption.PreviewFileNames is not null)
+                    || (skinOption is SkinFileOption skinFileOption && skinFileOption.IsAudio);
                 SkinOptionComponentInSelection = instance;
                 SkinSelectorPopup.ShowPreviewButtons = showPreviewButtons;
                 SkinSelectorPopup.In();
@@ -234,13 +235,24 @@ public partial class SkinOptionsSelector : PanelContainer
                 AudioStream stream = skin.GetAudioStream(fileName);
                 if (stream is not null)
                 {
-                    stream.ResourceName = fileName;
+                    //stream.ResourceName = fileName;
                     PreviewAudioStreamQueue.Enqueue(stream);
                     toastContent.Append($"{fileName}, ");
                 }
             }
 
             Settings.PushToast(toastContent.ToString().TrimEnd(',', ' '));
+
+            PlayNextPreviewAudio();
+        }
+        else if (skinOption is SkinFileOption skinFileOption && skinFileOption.IsAudio)
+        {
+            PreviewAudioStreamQueue.Clear();
+
+            AudioStream stream = skin.GetAudioStream(skinFileOption.IncludeFileName);
+            PreviewAudioStreamQueue.Enqueue(stream);
+
+            Settings.PushToast($"Playing: {skinFileOption.IncludeFileName}");
 
             PlayNextPreviewAudio();
         }
