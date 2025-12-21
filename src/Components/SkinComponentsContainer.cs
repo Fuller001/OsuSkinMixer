@@ -9,7 +9,7 @@ public partial class SkinComponentsContainer : PanelContainer
 
     public event Action<OsuSkin, bool> SkinChecked;
 
-    public event Action<OsuSkin> SkinPreviewRequested;
+    public event Action<OsuSkin, bool, Action> SkinPreviewRequested;
 
     public Action<IEnumerable<OsuSkin>> SkinInfoRequested
     {
@@ -190,7 +190,7 @@ public partial class SkinComponentsContainer : PanelContainer
         instance.CheckBoxVisible = CheckableComponents;
         instance.LeftClicked += () => SkinSelected(skin);
         instance.Checked += p => SkinChecked(skin, p);
-        instance.PreviewRequested += () => SkinPreviewRequested(skin);
+        instance.PreviewRequested += (previewing, finishedAction) => SkinPreviewRequested(skin, previewing, finishedAction);
         instance.RightClicked += () =>
         {
             ManageSkinPopup.SetSkin(skin);

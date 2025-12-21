@@ -15,7 +15,7 @@ public partial class SkinSelectorPopup : Popup
 
     private bool _isCompact;
 
-    private bool _showPreviewButtons;
+    private bool _showPreviewButtons = true;
     
     private Button BackButton;
     private LineEdit SearchLineEdit;

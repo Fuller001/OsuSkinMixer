@@ -23,6 +23,8 @@ public partial class SkinOptionsSelector : PanelContainer
 
     private readonly Random Random = new();
 
+    private Action previewFinishedAction;
+
     private readonly Queue<AudioStream> PreviewAudioStreamQueue = new();
 
     public override void _Ready()
@@ -43,13 +45,8 @@ public partial class SkinOptionsSelector : PanelContainer
         };
 
         SkinSelectorPopup.SkinComponentsContainer.SkinPreviewRequested += OnPreviewRequested;
-
         OsuData.SkinRemoved += OnSkinRemoved;
-
-        AudioStreamPlayer.Finished += () =>
-        {
-            PlayNextPreviewAudio();
-        };
+        AudioStreamPlayer.Finished += PlayNextPreviewAudio;
 
         if (!Settings.Content.ArrowButtonPressed)
             AnimationPlayer.Play("hint");
@@ -58,6 +55,7 @@ public partial class SkinOptionsSelector : PanelContainer
     public override void _ExitTree()
     {
         OsuData.SkinRemoved -= OnSkinRemoved;
+        AudioStreamPlayer = null;
     }
 
     // public void CreateOptionComponents(SkinOptionValue defaultValue)
@@ -267,9 +265,21 @@ public partial class SkinOptionsSelector : PanelContainer
         }
     }
 
-    private void OnPreviewRequested(OsuSkin skin)
+    private void OnPreviewRequested(OsuSkin skin, bool previewing, Action finishedAction)
     {
         SkinOption skinOption = SkinOptionComponentInSelection.SkinOption;
+
+        previewFinishedAction?.Invoke();
+
+        if (!previewing)
+        {
+            AudioStreamPlayer.Stop();
+            PreviewAudioStreamQueue.Clear();
+            previewFinishedAction = null;
+            return;
+        }
+
+        previewFinishedAction = finishedAction;
 
         if (skinOption is ParentSkinOption parentSkinOption)
         {
@@ -291,8 +301,12 @@ public partial class SkinOptionsSelector : PanelContainer
 
     private void PlayNextPreviewAudio()
     {
-        if (PreviewAudioStreamQueue.Count == 0)
+        if (PreviewAudioStreamQueue.Count == 0 || AudioStreamPlayer is null)
+        {  
+            previewFinishedAction?.Invoke();
+            previewFinishedAction = null;
             return;
+        }
 
         AudioStream stream = PreviewAudioStreamQueue.Dequeue();
         AudioStreamPlayer.Stream = stream;

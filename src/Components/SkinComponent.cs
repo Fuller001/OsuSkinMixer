@@ -14,7 +14,7 @@ public partial class SkinComponent : HBoxContainer
 
     public Action<bool> Checked { get; set; }
 
-    public Action PreviewRequested { get; set; }
+    public Action<bool, Action> PreviewRequested { get; set; }
 
     public bool IsChecked
     {
@@ -78,7 +78,7 @@ public partial class SkinComponent : HBoxContainer
         Button.GuiInput += OnGuiInput;
 
         if (PreviewButton != null)
-            PreviewButton.Pressed += () => PreviewRequested?.Invoke();
+            PreviewButton.Pressed += () => PreviewRequested?.Invoke(PreviewButton.ButtonPressed, OnPreviewFinished);
 
         if (CheckBox != null)
             CheckBox.Toggled += OnCheckBoxToggled;
@@ -149,6 +149,11 @@ public partial class SkinComponent : HBoxContainer
     private void OnCheckBoxToggled(bool value)
     {
         Checked?.Invoke(value);
+    }
+
+    private void OnPreviewFinished()
+    {
+        PreviewButton?.SetDeferred(Button.PropertyName.ButtonPressed, false);
     }
 
     private void SetCreditPercentageLabelText()
