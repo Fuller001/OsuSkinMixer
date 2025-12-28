@@ -23,6 +23,99 @@ public class OsuSkin
             new Color(0.9490f, 0.0941f, 0.2235f),
         };
 
+    private static readonly string[] DefaultAudioFiles =
+    [
+        "applause.wav",
+        "check-off.wav",
+        "check-on.wav",
+        "click-close.wav",
+        "click-short-confirm.wav",
+        "click-short.wav",
+        "combobreak.wav",
+        "count.wav",
+        "count1s.wav",
+        "count2s.wav",
+        "count3s.wav",
+        "drum-hitclap.wav",
+        "drum-hitfinish.wav",
+        "drum-hitnormal.wav",
+        "drum-hitwhistle.wav",
+        "drum-sliderslide.wav",
+        "drum-slidertick.wav",
+        "drum-sliderwhistle.wav",
+        "failsound.mp3",
+        "gos.wav",
+        "heartbeat.wav",
+        "key-confirm.wav",
+        "key-delete.wav",
+        "key-movement.wav",
+        "key-press-1.wav",
+        "key-press-2.wav",
+        "key-press-3.wav",
+        "key-press-4.wav",
+        "match-confirm.wav",
+        "match-join.wav",
+        "match-leave.wav",
+        "match-notready.wav",
+        "match-ready.wav",
+        "match-start.wav",
+        "menu-back-click.wav",
+        "menu-charts-click.wav",
+        "menu-direct-click.wav",
+        "menu-edit-hover.mp3",
+        "menu-exit-click.wav",
+        "menu-freeplay-click.wav",
+        "menu-multiplayer-click.wav",
+        "menu-options-click.wav",
+        "menu-play-click.wav",
+        "menuback.wav",
+        "menuclick.wav",
+        "menuhit.wav",
+        "metronomelow.wav",
+        "nightcore-clap.wav",
+        "nightcore-finish.wav",
+        "nightcore-hat.wav",
+        "nightcore-kick.wav",
+        "normal-hitclap.wav",
+        "normal-hitfinish.wav",
+        "normal-hitnormal.wav",
+        "normal-hitwhistle.wav",
+        "normal-sliderslide.wav",
+        "normal-slidertick.wav",
+        "normal-sliderwhistle.wav",
+        "pause-back-click.wav",
+        "pause-continue-click.wav",
+        "pause-hover.wav",
+        "pause-loop.mp3",
+        "pause-retry-click.wav",
+        "readys.wav",
+        "sectionfail.wav",
+        "sectionpass.wav",
+        "seeya.wav",
+        "select-difficulty.wav",
+        "select-expand.wav",
+        "shutter.wav",
+        "sliderbar.wav",
+        "soft-hitclap.wav",
+        "soft-hitfinish.wav",
+        "soft-hitnormal.wav",
+        "soft-hitwhistle.wav",
+        "soft-sliderslide.wav",
+        "soft-slidertick.wav",
+        "soft-sliderwhistle.wav",
+        "spinnerbonus.wav",
+        "spinnerspin.wav",
+        "taiko-normal-hitclap.wav",
+        "taiko-normal-hitfinish.wav",
+        "taiko-normal-hitnormal.wav",
+        "taiko-normal-hitwhistle.wav",
+        "taiko-soft-hitclap.wav",
+        "taiko-soft-hitfinish.wav",
+        "taiko-soft-hitnormal.wav",
+        "taiko-soft-hitwhistle.wav",
+        "welcome.wav",
+    ];
+
     public OsuSkin(string name, DirectoryInfo dir, bool hidden = false)
     {
         Name = name;
@@ -72,7 +165,7 @@ public class OsuSkin
             if (Directory is null)
                 return 0;
 
-            string[] extensions = [".png", ".jpg", ".wav", ".ogg"];
+            string[] extensions = [".png", ".jpg", ".wav", ".ogg", ".mp3"];
             return Directory.EnumerateFiles("*", SearchOption.AllDirectories)
                 .Count(f => extensions.Any(ext => f.Extension.Equals(ext, StringComparison.OrdinalIgnoreCase)));
         }
@@ -270,29 +363,39 @@ public class OsuSkin
 
     public AudioStream GetAudioStream(string filename)
     {
+        Settings.Log($"For skin '{Directory.Name}' get audio stream: {filename}");
+
         string pathPrefix = $"{Directory.FullName}/{filename}";
 
         try
         {
             if (filename.EndsWith('*'))
             {
-                string basePattern = filename.TrimEnd('*');
+                string wildcardPrefix = filename.TrimEnd('*');
+                string wildcardPath = Path.Combine(Directory.FullName, wildcardPrefix);
+                string searchDirectory = Path.GetDirectoryName(wildcardPath) ?? Directory.FullName;
+                string searchPrefix = Path.GetFileName(wildcardPrefix);
+                string[] extensions = [".wav", ".ogg", ".mp3"];
 
-                foreach (var file in Directory.EnumerateFiles())
+                foreach (string extension in extensions)
                 {
-                    string nameWithoutExt = Path.GetFileNameWithoutExtension(file.Name);
-                    string ext = file.Extension.ToLowerInvariant();
+                    DirectoryInfo searchRoot = new(searchDirectory);
+                    string match = searchRoot.EnumerateFiles($"{searchPrefix}*{extension}", SearchOption.TopDirectoryOnly)
+                        .OrderBy(path => path.FullName, StringComparer.OrdinalIgnoreCase)
+                        .Select(path => path.FullName)
+                        .FirstOrDefault();
 
-                    if (nameWithoutExt.StartsWith(basePattern, StringComparison.OrdinalIgnoreCase) && ext is ".wav" or ".ogg")
+                    if (match == null)
+                        continue;
+
+                    return extension switch
                     {
-                        if (ext == ".wav")
-                            return AudioStreamWav.LoadFromFile(file.FullName);
-                        else if (ext == ".ogg")
-                            return AudioStreamOggVorbis.LoadFromFile(file.FullName);
-                    }
+                        ".wav" => AudioStreamWav.LoadFromFile(match),
+                        ".ogg" => AudioStreamOggVorbis.LoadFromFile(match),
+                        ".mp3" => AudioStreamMP3.LoadFromFile(match),
+                        _ => null,
+                    };
                 }
-
-                return null;
             }
 
             if (File.Exists(pathPrefix + ".wav"))
@@ -303,13 +406,17 @@ public class OsuSkin
             {
                 return AudioStreamOggVorbis.LoadFromFile(pathPrefix + ".ogg");
             }
+            else if (File.Exists(pathPrefix + ".mp3"))
+            {
+                return AudioStreamMP3.LoadFromFile(pathPrefix + ".mp3");
+            }
         }
         catch
         {
             return null;
         }
 
-        return GetDefaultElement<AudioStream>($"{filename}.wav");
+        return GetDefaultAudioStream(filename);
     }
 
     public void ClearCache()
@@ -376,4 +483,40 @@ public class OsuSkin
 
     private static T GetDefaultElement<T>(string filenameWithExtension) where T : Resource
         => GD.Load<T>($"res://assets/defaultskin/{filenameWithExtension}");
+
+    private static AudioStream GetDefaultAudioStream(string filename)
+    {
+        if (string.IsNullOrEmpty(filename))
+            return null;
+
+        if (filename.EndsWith('*'))
+        {
+            string prefix = filename.TrimEnd('*');
+            string match = DefaultAudioFiles
+                .Where(file => file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(file => file, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+
+            return match != null ? GetDefaultElement<AudioStream>(match) : null;
+        }
+
+        if (Path.HasExtension(filename))
+        {
+            string match = DefaultAudioFiles
+                .FirstOrDefault(file => file.Equals(filename, StringComparison.OrdinalIgnoreCase));
+
+            return match != null ? GetDefaultElement<AudioStream>(match) : null;
+        }
+
+        string baseMatch = DefaultAudioFiles
+            .Where(file => Path.GetFileNameWithoutExtension(file)
+                .Equals(filename, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(file => file, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        if (baseMatch != null)
+            return GetDefaultElement<AudioStream>(baseMatch);
+
+        return GetDefaultElement<AudioStream>($"{filename}.wav");
+    }
 }
