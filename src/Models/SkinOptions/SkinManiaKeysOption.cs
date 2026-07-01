@@ -8,9 +8,9 @@ public class SkinManiaKeysOption : SkinOption
         Keys = keys;
     }
 
-    public int Keys { get; }
+    public int Keys { get; set; }
 
     public override string Name => $"{Keys}K";
 
-    public override string ToString() => $"[skin.ini]\n[Mania]\nKeys: {Keys}";
+    public override string ToString() => $"Copy entire osu!mania section and referenced files where:\n\n[Mania]\nKeys: {Keys}";
 }

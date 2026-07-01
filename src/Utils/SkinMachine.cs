@@ -608,6 +608,8 @@ public abstract class SkinMachine : IDisposable
         int lastSlashIndex = normalizedDestinationPrefix.LastIndexOf('/');
         string destinationDirRelativePath = lastSlashIndex >= 0 ? normalizedDestinationPrefix[..lastSlashIndex] : null;
         string destinationFilePrefix = normalizedDestinationPrefix[(lastSlashIndex + 1)..];
+        int sourceLastSlashIndex = normalizedSourcePrefix.LastIndexOf('/');
+        string sourceFilePrefix = normalizedSourcePrefix[(sourceLastSlashIndex + 1)..];
 
         DirectoryInfo destinationDir = destinationDirRelativePath == null
             ? workingSkin.Directory
@@ -617,7 +619,6 @@ public abstract class SkinMachine : IDisposable
         foreach (FileInfo file in GetImageFilesForPrefix(sourceSkin.Directory, normalizedSourcePrefix))
         {
             string filenameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
-            string sourceFilePrefix = Path.GetFileName(normalizedSourcePrefix);
             string suffix = filenameWithoutExtension[sourceFilePrefix.Length..];
             string destinationFileName = $"{destinationFilePrefix}{suffix}{file.Extension}";
             string destinationRelativeFileName = destinationDirRelativePath == null
@@ -632,7 +633,7 @@ public abstract class SkinMachine : IDisposable
         return copied;
     }
 
-    protected static bool IsImagePrefixMatch(FileInfo file, string prefix)
+    private static bool IsImagePrefixMatch(FileInfo file, string prefix)
     {
         if (!ImageFileExtensions.Any(extension => file.Extension.Equals(extension, StringComparison.OrdinalIgnoreCase)))
             return false;
@@ -647,7 +648,7 @@ public abstract class SkinMachine : IDisposable
             || suffix.StartsWith('-');
     }
 
-    protected static string NormalizeSkinElementPrefix(string value)
+    private static string NormalizeSkinElementPrefix(string value)
     {
         string normalized = value?.Trim().Replace('\\', '/').TrimStart('/');
         if (string.IsNullOrWhiteSpace(normalized))
@@ -746,7 +747,18 @@ public abstract class SkinMachine : IDisposable
         return isNormalKey2 ? "2" : "1";
     }
 
-    private readonly record struct ManiaImageProperty(string Name, string DefaultPrefix);
+    private class ManiaImageProperty
+    {
+        public ManiaImageProperty(string name, string defaultPrefix)
+        {
+            Name = name;
+            DefaultPrefix = defaultPrefix;
+        }
+
+        public string Name { get; set; }
+
+        public string DefaultPrefix { get; set; }
+    }
 
     private enum ManiaSpecialStyle
     {
