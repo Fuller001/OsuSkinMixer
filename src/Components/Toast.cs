@@ -52,7 +52,8 @@ public partial class Toast : Control
 
     public void Push(string text)
     {
-        if (ToastAnimationPlayer.AssignedAnimation is "in" or "progress"
+        var assignedAnimation = ToastAnimationPlayer.AssignedAnimation;
+        if ((assignedAnimation == "in" || assignedAnimation == "progress")
             && (ToastAnimationPlayer.CurrentAnimationPosition / ToastAnimationPlayer.CurrentAnimationLength) < NEW_TOAST_IF_PROGRESS_AFTER)
         {
             _queue.Enqueue(text);

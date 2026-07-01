@@ -12,6 +12,9 @@ using OsuSkinMixer.Statics;
 public abstract class SkinMachine : IDisposable
 {
     private const int LOG_SPLIT_CHAR_SIZE = 100000;
+    private const string MANIA_SKIN_INI_SECTION = "Mania";
+    private const string MANIA_KEYS_PROPERTY = "Keys";
+    private static readonly string[] ImageFileExtensions = [".png", ".jpg"];
 
     protected static byte[] TransparentPngFile => new byte[] {
         0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
@@ -172,6 +175,9 @@ public abstract class SkinMachine : IDisposable
         }
     }
 
+    protected static string GetSkinRelativePath(OsuSkin skin, FileInfo file)
+        => Path.GetRelativePath(skin.Directory.FullName, file.FullName).Replace('\\', '/');
+
     public static string GetMd5Hash(string filePath)
     {
         using MD5 md5 = MD5.Create();
@@ -199,6 +205,9 @@ public abstract class SkinMachine : IDisposable
                 break;
             case SkinFileOption fileOption:
                 CopyFileOption(workingSkin, fileOption);
+                break;
+            case SkinManiaKeysOption maniaKeysOption:
+                CopyManiaKeysOption(workingSkin, maniaKeysOption);
                 break;
         }
     }
@@ -307,6 +316,62 @@ public abstract class SkinMachine : IDisposable
         }
     }
 
+    protected virtual void CopyManiaKeysOption(OsuSkin workingSkin, SkinManiaKeysOption maniaKeysOption)
+    {
+        if (maniaKeysOption.Value.Type == SkinOptionValueType.DefaultSkin)
+            return;
+
+        OsuSkin sourceSkin = maniaKeysOption.Value.CustomSkin;
+        if (sourceSkin?.Directory == null)
+            return;
+
+        int keys = maniaKeysOption.Keys;
+        OsuSkinIniSection sourceSection = FindManiaSection(sourceSkin, keys);
+        OsuSkinIniSection newSection = sourceSection != null
+            ? CloneIniSection(sourceSection)
+            : new OsuSkinIniSection(MANIA_SKIN_INI_SECTION);
+
+        newSection[MANIA_KEYS_PROPERTY] = keys.ToString();
+
+        Log($"Copying osu!mania {keys}K section from '{sourceSkin.Name}'");
+
+        bool copiedAnyFiles = false;
+        Dictionary<string, bool> copiedPrefixes = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var imageProperty in GetManiaImageProperties(keys, newSection))
+        {
+            bool hasCustomValue = newSection.TryGetValue(imageProperty.Name, out string propertyValue);
+            string sourcePrefix = hasCustomValue
+                ? NormalizeSkinElementPrefix(propertyValue)
+                : imageProperty.DefaultPrefix;
+
+            if (string.IsNullOrWhiteSpace(sourcePrefix))
+                continue;
+
+            string destinationPrefix = GetManiaDestinationPrefix(sourceSkin, sourcePrefix);
+            string copyCacheKey = $"{sourcePrefix}\0{destinationPrefix}";
+            if (!copiedPrefixes.TryGetValue(copyCacheKey, out bool copied))
+            {
+                copied = CopyImagePrefixToPreservedPath(
+                    sourceSkin,
+                    workingSkin,
+                    sourcePrefix,
+                    destinationPrefix,
+                    $"due to osu!mania {keys}K {imageProperty.Name}");
+
+                copiedPrefixes[copyCacheKey] = copied;
+            }
+
+            if (copied)
+            {
+                newSection[imageProperty.Name] = destinationPrefix;
+                copiedAnyFiles = true;
+            }
+        }
+
+        if (sourceSection != null || copiedAnyFiles)
+            workingSkin.SkinIni.Sections.Add(newSection);
+    }
+
     protected void AddTask(Action task)
         => _tasks.Add(task);
 
@@ -314,8 +379,11 @@ public abstract class SkinMachine : IDisposable
         => _tasks.Insert(0, task);
 
     protected void AddCopyFileTask(FileInfo file, DirectoryInfo fileDestDir, string reason)
+        => AddCopyFileTask(file, fileDestDir, file.Name, reason);
+
+    protected void AddCopyFileTask(FileInfo file, DirectoryInfo fileDestDir, string destFileName, string reason)
     {
-        string destFullPath = $"{fileDestDir.FullName}/{file.Name}";
+        string destFullPath = Path.Combine(fileDestDir.FullName, destFileName);
 
         // We cache the file data beforehand in case it changes or is deleted before we have the chance to copy it.
         MemoryStream memoryStream = new();
@@ -392,6 +460,16 @@ public abstract class SkinMachine : IDisposable
                 });
             }
         }
+    }
+
+    protected static bool IsManiaSectionForKeys(OsuSkinIniSection section, int keys)
+    {
+        if (!section.Name.Equals(MANIA_SKIN_INI_SECTION, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return section.TryGetValue(MANIA_KEYS_PROPERTY, out string value)
+            && int.TryParse(value, out int sectionKeys)
+            && sectionKeys == keys;
     }
 
     protected void AddFileToOriginalElementsCache(string fullFilePath)
@@ -483,6 +561,198 @@ public abstract class SkinMachine : IDisposable
 
         string filenameSuffix = filename.ToLower().TrimSuffix("@2x").TrimPrefix(fileOption.IncludeFileName.ToLower().TrimEnd('*'));
         return fileOption.AllowedSuffixes.Any(s => filenameSuffix.Equals(s, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static OsuSkinIniSection FindManiaSection(OsuSkin skin, int keys)
+        => skin.SkinIni?.Sections.FirstOrDefault(section => IsManiaSectionForKeys(section, keys));
+
+    private static OsuSkinIniSection CloneIniSection(OsuSkinIniSection section)
+    {
+        OsuSkinIniSection result = new(section.Name);
+        foreach (var pair in section)
+            result[pair.Key] = pair.Value;
+
+        return result;
+    }
+
+    protected static IEnumerable<string> GetSkinIniFilePrefixes(OsuSkinIniSection section)
+        => section
+            .Where(pair => OsuSkinIni.PropertyHasFilePath(pair.Key))
+            .Select(pair => NormalizeSkinElementPrefix(pair.Value))
+            .Where(prefix => !string.IsNullOrWhiteSpace(prefix));
+
+    protected static FileInfo[] GetImageFilesForPrefix(DirectoryInfo skinDir, string prefix)
+    {
+        string normalizedPrefix = NormalizeSkinElementPrefix(prefix);
+        int lastSlashIndex = normalizedPrefix.LastIndexOf('/');
+        string dirRelativePath = lastSlashIndex >= 0 ? normalizedPrefix[..lastSlashIndex] : null;
+        string filePrefix = normalizedPrefix[(lastSlashIndex + 1)..];
+
+        DirectoryInfo dir = dirRelativePath == null
+            ? skinDir
+            : new DirectoryInfo(Path.Combine(skinDir.FullName, dirRelativePath));
+
+        if (!dir.Exists)
+            return Array.Empty<FileInfo>();
+
+        return dir
+            .EnumerateFiles()
+            .Where(file => IsImagePrefixMatch(file, filePrefix))
+            .ToArray();
+    }
+
+    private bool CopyImagePrefixToPreservedPath(OsuSkin sourceSkin, OsuSkin workingSkin, string sourcePrefix, string destinationPrefix, string reason)
+    {
+        string normalizedSourcePrefix = NormalizeSkinElementPrefix(sourcePrefix);
+        string normalizedDestinationPrefix = NormalizeSkinElementPrefix(destinationPrefix);
+        int lastSlashIndex = normalizedDestinationPrefix.LastIndexOf('/');
+        string destinationDirRelativePath = lastSlashIndex >= 0 ? normalizedDestinationPrefix[..lastSlashIndex] : null;
+        string destinationFilePrefix = normalizedDestinationPrefix[(lastSlashIndex + 1)..];
+
+        DirectoryInfo destinationDir = destinationDirRelativePath == null
+            ? workingSkin.Directory
+            : Directory.CreateDirectory(Path.Combine(workingSkin.Directory.FullName, destinationDirRelativePath));
+
+        bool copied = false;
+        foreach (FileInfo file in GetImageFilesForPrefix(sourceSkin.Directory, normalizedSourcePrefix))
+        {
+            string filenameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
+            string sourceFilePrefix = Path.GetFileName(normalizedSourcePrefix);
+            string suffix = filenameWithoutExtension[sourceFilePrefix.Length..];
+            string destinationFileName = $"{destinationFilePrefix}{suffix}{file.Extension}";
+            string destinationRelativeFileName = destinationDirRelativePath == null
+                ? destinationFileName
+                : $"{destinationDirRelativePath}/{destinationFileName}";
+
+            Md5Map[(sourceSkin, destinationRelativeFileName)] = GetMd5Hash(file.FullName);
+            AddCopyFileTask(file, destinationDir, destinationFileName, reason);
+            copied = true;
+        }
+
+        return copied;
+    }
+
+    protected static bool IsImagePrefixMatch(FileInfo file, string prefix)
+    {
+        if (!ImageFileExtensions.Any(extension => file.Extension.Equals(extension, StringComparison.OrdinalIgnoreCase)))
+            return false;
+
+        string filenameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
+        if (!filenameWithoutExtension.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        string suffix = filenameWithoutExtension[prefix.Length..];
+        return suffix.Length == 0
+            || suffix.Equals("@2x", StringComparison.OrdinalIgnoreCase)
+            || suffix.StartsWith('-');
+    }
+
+    protected static string NormalizeSkinElementPrefix(string value)
+    {
+        string normalized = value?.Trim().Replace('\\', '/').TrimStart('/');
+        if (string.IsNullOrWhiteSpace(normalized))
+            return normalized;
+
+        string extension = Path.GetExtension(normalized);
+        if (ImageFileExtensions.Any(imageExtension => extension.Equals(imageExtension, StringComparison.OrdinalIgnoreCase)))
+            normalized = normalized[..^extension.Length];
+
+        return normalized;
+    }
+
+    private static string GetManiaDestinationPrefix(OsuSkin sourceSkin, string sourcePrefix)
+        => $"{GetSafeSkinDirectoryName(sourceSkin)}/{NormalizeSkinElementPrefix(sourcePrefix)}";
+
+    private static string GetSafeSkinDirectoryName(OsuSkin skin)
+    {
+        string name = skin.Directory?.Name ?? skin.Name ?? "skin";
+        foreach (char invalidChar in Path.GetInvalidFileNameChars())
+            name = name.Replace(invalidChar, '_');
+
+        name = name.Trim().TrimEnd('.');
+        return string.IsNullOrWhiteSpace(name) || name is "." or ".." ? "skin" : name;
+    }
+
+    private static IEnumerable<ManiaImageProperty> GetManiaImageProperties(int keys, OsuSkinIniSection section)
+    {
+        ManiaSpecialStyle specialStyle = GetManiaSpecialStyle(section);
+
+        for (int i = 0; i < keys; i++)
+        {
+            string columnSuffix = GetManiaColumnSkinSuffix(keys, specialStyle, i);
+
+            yield return new($"KeyImage{i}", $"mania-key{columnSuffix}");
+            yield return new($"KeyImage{i}D", $"mania-key{columnSuffix}D");
+            yield return new($"NoteImage{i}", $"mania-note{columnSuffix}");
+            yield return new($"NoteImage{i}H", $"mania-note{columnSuffix}H");
+            yield return new($"NoteImage{i}L", $"mania-note{columnSuffix}L");
+            yield return new($"NoteImage{i}T", $"mania-note{columnSuffix}T");
+        }
+
+        yield return new("StageLeft", "mania-stage-left");
+        yield return new("StageRight", "mania-stage-right");
+        yield return new("StageBottom", "mania-stage-bottom");
+        yield return new("StageHint", "mania-stage-hint");
+        yield return new("StageLight", "mania-stage-light");
+        yield return new("Hit0", "mania-hit0");
+        yield return new("Hit50", "mania-hit50");
+        yield return new("Hit100", "mania-hit100");
+        yield return new("Hit200", "mania-hit200");
+        yield return new("Hit300", "mania-hit300");
+        yield return new("Hit300g", "mania-hit300g");
+        yield return new("LightingN", "lightingN");
+        yield return new("LightingL", "lightingL");
+        yield return new("WarningArrow", "mania-warningarrow");
+    }
+
+    private static ManiaSpecialStyle GetManiaSpecialStyle(OsuSkinIniSection section)
+    {
+        if (!section.TryGetValue("SpecialStyle", out string value))
+            return ManiaSpecialStyle.None;
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "1" or "left" => ManiaSpecialStyle.Left,
+            "2" or "right" => ManiaSpecialStyle.Right,
+            _ => ManiaSpecialStyle.None,
+        };
+    }
+
+    private static string GetManiaColumnSkinSuffix(int keys, ManiaSpecialStyle specialStyle, int column)
+    {
+        bool useSpecialStyle = keys > 4 && keys % 2 == 0 && specialStyle != ManiaSpecialStyle.None;
+        int specialColumn = specialStyle == ManiaSpecialStyle.Right ? keys - 1 : 0;
+
+        if (useSpecialStyle)
+        {
+            if (column == specialColumn)
+                return "S";
+
+            if ((column % 2 == 1 && specialStyle == ManiaSpecialStyle.Right)
+                || (column % 2 == 0 && specialStyle == ManiaSpecialStyle.Left))
+                return "2";
+
+            return "1";
+        }
+
+        int middleColumn = (int)Math.Floor(keys / 2f);
+        if (keys % 2 == 1 && keys > 4 && column == middleColumn)
+            return "S";
+
+        bool isNormalKey2 =
+            (keys % 2 == 1 && column != middleColumn && column % 2 == 1)
+            || (keys % 2 == 0 && ((column < middleColumn && column % 2 == 1) || (column >= middleColumn && column % 2 == 0)));
+
+        return isNormalKey2 ? "2" : "1";
+    }
+
+    private readonly record struct ManiaImageProperty(string Name, string DefaultPrefix);
+
+    private enum ManiaSpecialStyle
+    {
+        None,
+        Left,
+        Right,
     }
 
     public void Dispose()

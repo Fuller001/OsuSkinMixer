@@ -490,6 +490,45 @@ public class SkinModifierMachine : SkinMachine
         base.CopyIniSectionOption(workingSkin, iniSectionOption);
     }
 
+    protected override void CopyManiaKeysOption(OsuSkin workingSkin, SkinManiaKeysOption maniaKeysOption)
+    {
+        OsuSkinIniSection[] sections = workingSkin.SkinIni.Sections
+            .Where(section => IsManiaSectionForKeys(section, maniaKeysOption.Keys))
+            .ToArray();
+        HashSet<string> remainingFilePrefixes = workingSkin.SkinIni.Sections
+            .Except(sections)
+            .SelectMany(GetSkinIniFilePrefixes)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        AddPriorityTask(() =>
+        {
+            foreach (OsuSkinIniSection section in sections)
+            {
+                if (workingSkin.SkinIni?.Sections.Remove(section) == true)
+                    Log($"Removed skin.ini mania section '{maniaKeysOption.Keys}K' to avoid remnants");
+            }
+        });
+
+        AddPriorityTask(() =>
+        {
+            foreach (string prefix in sections.SelectMany(GetSkinIniFilePrefixes).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (remainingFilePrefixes.Contains(prefix))
+                    continue;
+
+                foreach (FileInfo file in GetImageFilesForPrefix(workingSkin.Directory, prefix))
+                {
+                    Log($"Removing mania file '{file.FullName}' to avoid remnants");
+                    RemoveCreditIfExists(workingSkin, GetSkinRelativePath(workingSkin, file));
+                    AddFileToOriginalElementsCache(file.FullName);
+                    file.Delete();
+                }
+            }
+        });
+
+        base.CopyManiaKeysOption(workingSkin, maniaKeysOption);
+    }
+
     protected override void CopyFileOption(OsuSkin workingSkin, SkinFileOption fileOption)
     {
         // Remove old files to avoid remnants, so if there is no match the default skin will be used.
